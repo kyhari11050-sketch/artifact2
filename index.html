@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ko" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘의 역사 교훈 - 구석기부터 고려까지</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Gowun Batang for traditional feel & Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        batang: ['"Gowun Batang"', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        amber: {
+                            850: '#6d3110',
+                            950: '#3a1705',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar & animations */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(180, 120, 60, 0.3);
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(180, 120, 60, 0.6);
+        }
+
+        /* Card Flip Animation */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Traditional Pattern Background Effect */
+        .hanok-bg {
+            background-color: #fcfbf7;
+            background-image: radial-gradient(#e5decf 0.75px, transparent 0.75px), radial-gradient(#e5decf 0.75px, #fcfbf7 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+
+        /* Shake animation for the fortune box */
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            20% { transform: rotate(-8deg) scale(1.05); }
+            40% { transform: rotate(8deg) scale(1.05); }
+            60% { transform: rotate(-5deg) scale(1.02); }
+            80% { transform: rotate(5deg) scale(1.02); }
+        }
+        .animate-shake {
+            animation: shake 0.6s ease-in-out infinite;
+        }
+
+        /* Sparkle float animation */
+        @keyframes float-up {
+            0% { transform: translateY(0) opacity(1); }
+            100% { transform: translateY(-50px) opacity(0); }
+        }
+    </style>
+</head>
+<body class="hanok-bg min-h-full text-stone-800 font-sans flex flex-col justify-between selection:bg-amber-200 selection:text-amber-900">
+
+    <!-- Header / Navbar -->
+    <header class="w-full border-b border-stone-200 bg-white/80 backdrop-blur-md sticky top-0 z-30 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-700 text-amber-50 flex items-center justify-center font-batang font-bold text-xl shadow-inner">
+                    史
+                </div>
+                <div>
+                    <h1 class="font-batang font-bold text-lg md:text-xl text-amber-950 tracking-tight">오늘의 역사 교훈</h1>
+                    <p class="text-xs text-stone-500">구석기부터 고려시대까지 전하는 지혜</p>
+                </div>
+            </div>
+            <button id="bookmark-list-btn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50/50 hover:bg-amber-100/60 text-amber-900 text-sm font-medium transition">
+                <i data-lucide="bookmark" class="w-4 h-4"></i>
+                <span>보관함</span>
+                <span id="bookmark-count" class="ml-1 bg-amber-700 text-white text-xs px-1.5 py-0.2 rounded-full font-sans">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-4xl mx-auto px-4 py-6 md:py-10 flex-grow w-full flex flex-col items-center">
+
+        <!-- Period Selector Filter / Era Cards Navigation -->
+        <div class="w-full mb-8">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-stone-400">시대 탐색 및 선택</h2>
+                <span id="selected-era-label" class="text-xs text-amber-700 font-medium">전체 시대 (랜덤)</span>
+            </div>
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="era-filter-container">
+                <!-- Era Buttons will be rendered by JS -->
+            </div>
+        </div>
+
+        <!-- Interactive Fortune Draw Section -->
+        <div class="w-full flex flex-col items-center my-auto py-4">
+            
+            <!-- Card Container / Flip Area -->
+            <div class="w-full max-w-md perspective-1000 min-h-[440px] relative">
+                
+                <!-- Initial / Drawing Box Card -->
+                <div id="draw-card" class="w-full h-full min-h-[440px] bg-white rounded-2xl border-2 border-amber-200/80 shadow-xl p-6 flex flex-col items-center justify-between text-center transition-all duration-500 relative overflow-hidden group">
+                    
+                    <!-- Decorative Background SVG -->
+                    <div class="absolute -right-10 -bottom-10 opacity-5 pointer-events-none">
+                        <i class="fa-solid fa-landmark text-[200px]"></i>
+                    </div>
+
+                    <div class="pt-4">
+                        <span class="inline-block px-3 py-1 bg-amber-100 text-amber-800 text-xs font-medium rounded-full mb-2">시공간을 넘어온 지혜</span>
+                        <h3 class="font-batang text-2xl font-bold text-stone-800">어떤 시대의 교훈이<br>당신을 기다릴까요?</h3>
+                    </div>
+
+                    <!-- Animated Treasure Box / Scroll Graphic -->
+                    <div id="box-icon-wrapper" class="my-6 cursor-pointer transform transition group-hover:scale-105">
+                        <div class="w-32 h-32 rounded-full bg-gradient-to-tr from-amber-100 to-orange-50 border border-amber-300 flex items-center justify-center shadow-inner relative">
+                            <i id="box-icon" class="fa-solid fa-scroll text-6xl text-amber-700 transition duration-300"></i>
+                            <div class="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs shadow-md">
+                                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full pb-2">
+                        <p id="draw-hint" class="text-sm text-stone-500 mb-4 font-batang">아래 버튼을 눌러 시대의 지혜를 뽑아보세요.</p>
+                        <button id="draw-btn" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-amber-700 to-amber-800 hover:from-amber-800 hover:to-amber-900 text-amber-50 font-medium font-batang text-lg shadow-lg shadow-amber-900/20 active:scale-[0.98] transition flex items-center justify-center gap-2">
+                            <i data-lucide="dices" class="w-5 h-5"></i>
+                            <span>오늘의 교훈 뽑기</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Result Card (Revealed after draw) -->
+                <div id="result-card" class="hidden w-full h-full min-h-[440px] bg-white rounded-2xl border-2 border-amber-300/80 shadow-2xl p-6 sm:p-8 flex flex-col justify-between text-left relative overflow-hidden transition-all duration-500">
+                    
+                    <!-- Decorative Top Border Pattern -->
+                    <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-600 via-amber-800 to-stone-700"></div>
+
+                    <div>
+                        <!-- Header / Era Tag & Actions -->
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span id="res-era-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-800 border border-stone-200">
+                                    <!-- Era icon & name -->
+                                </span>
+                                <span id="res-period" class="block text-xs text-stone-400 mt-1">시대 정보</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button id="btn-bookmark" title="보관함에 저장" class="p-2 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-amber-600 transition">
+                                    <i data-lucide="bookmark" class="w-5 h-5"></i>
+                                </button>
+                                <button id="btn-share" title="클립보드 복사" class="p-2 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition">
+                                    <i data-lucide="share-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Core Title / Historical Keyword -->
+                        <div class="mb-4">
+                            <h4 id="res-title" class="font-batang text-xs text-amber-800 font-bold tracking-wider mb-1">키워드</h4>
+                            <p id="res-quote" class="font-batang text-xl sm:text-2xl font-bold text-stone-900 leading-snug break-keep">
+                                "교훈 문장이 들어갑니다."
+                            </p>
+                        </div>
+
+                        <!-- Explanation / Modern Lesson -->
+                        <div class="space-y-3 my-4 bg-amber-50/50 p-4 rounded-xl border border-amber-100">
+                            <div>
+                                <h5 class="text-xs font-bold text-stone-500 mb-1 flex items-center gap-1">
+                                    <i data-lucide="book-open" class="w-3.5 h-3.5 text-amber-700"></i> 역사적 배경
+                                </h5>
+                                <p id="res-history" class="text-xs sm:text-sm text-stone-700 leading-relaxed break-keep">
+                                    역사적 맥락 설명
+                                </p>
+                            </div>
+                            <div class="border-t border-amber-200/50 pt-2">
+                                <h5 class="text-xs font-bold text-amber-850 mb-1 flex items-center gap-1">
+                                    <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-600"></i> 오늘날의 적용
+                                </h5>
+                                <p id="res-application" class="text-xs sm:text-sm text-stone-800 font-medium leading-relaxed break-keep">
+                                    현대적 해석 및 가이드
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="pt-2 flex gap-2">
+                        <button id="btn-redraw" class="flex-1 py-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium font-batang text-sm transition flex items-center justify-center gap-2">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            <span>다시 뽑기</span>
+                        </button>
+                        <button id="btn-detail" class="px-4 py-3 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-medium font-batang text-sm transition flex items-center justify-center gap-1.5">
+                            <span>상세 정보</span>
+                            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full border-t border-stone-200 bg-white/50 text-stone-400 py-4 text-center text-xs font-batang">
+        <p>선조들의 지혜로 밝히는 오늘 | 구석기 · 신석기 · 청동기/고조선 · 삼국/통일신라 · 고려</p>
+    </footer>
+
+    <!-- Bookmark Drawer / Modal -->
+    <div id="bookmark-modal" class="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-sm hidden flex justify-end transition-opacity duration-300">
+        <div class="w-full max-w-md bg-white h-full shadow-2xl flex flex-col transform transition-transform duration-300 translate-x-full" id="bookmark-drawer">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-stone-200 flex justify-between items-center bg-stone-50">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="bookmark" class="w-5 h-5 text-amber-700"></i>
+                    <h3 class="font-batang font-bold text-stone-800">저장한 역사 교훈</h3>
+                </div>
+                <button id="close-bookmark-btn" class="p-1 rounded-lg hover:bg-stone-200 text-stone-500 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Modal List Content -->
+            <div id="bookmark-list" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                <!-- Bookmarks injected here -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-stone-200 bg-stone-50 text-xs text-stone-400 text-center">
+                저장된 교훈은 현재 브라우저에 안전하게 보관됩니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- Historical Detail Dialog Modal -->
+    <div id="detail-modal" class="fixed inset-0 z-50 bg-stone-900/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-stone-200">
+            <div class="p-5 border-b border-stone-100 flex justify-between items-start bg-amber-50/50">
+                <div>
+                    <span id="modal-era" class="text-xs font-bold text-amber-800 px-2 py-0.5 rounded bg-amber-100">시대</span>
+                    <h3 id="modal-title" class="font-batang font-bold text-xl text-stone-900 mt-1">상세 역사 이야기</h3>
+                </div>
+                <button id="close-detail-btn" class="p-1 rounded-lg hover:bg-stone-200 text-stone-500 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 custom-scrollbar text-sm text-stone-700 leading-relaxed font-sans">
+                <div>
+                    <h4 class="font-bold text-stone-900 text-xs tracking-wider uppercase mb-1 text-amber-850">시대적 배경 및 역사 사실</h4>
+                    <p id="modal-content-history" class="bg-stone-50 p-3.5 rounded-lg border border-stone-200">
+                        상세 역사 정보
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-stone-900 text-xs tracking-wider uppercase mb-1 text-amber-850">관련 유물 및 사건 / 인물</h4>
+                    <p id="modal-content-artifact" class="bg-stone-50 p-3.5 rounded-lg border border-stone-200">
+                        유물 및 주요 사건
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-stone-900 text-xs tracking-wider uppercase mb-1 text-amber-850">깊은 성찰</h4>
+                    <p id="modal-content-insight" class="bg-amber-50/60 p-3.5 rounded-lg border border-amber-200 text-stone-800 font-batang">
+                        통찰적 메시지
+                    </p>
+                </div>
+            </div>
+            <div class="p-4 border-t border-stone-100 bg-stone-50 flex justify-end">
+                <button id="close-detail-btn-2" class="px-5 py-2 rounded-xl bg-amber-800 text-amber-50 hover:bg-amber-900 text-sm font-medium transition">
+                    확인
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-stone-900/90 text-white text-xs sm:text-sm px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300 z-50">
+        <i data-lucide="info" class="w-4 h-4 text-amber-400"></i>
+        <span id="toast-msg">알림 메시지</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Database of Historical Lessons (Paleolithic to Goryeo)
+        const historyDatabase = [
+            // --- 1. 구석기 시대 (Paleolithic) ---
+            {
+                id: 'palaeo-1',
+                eraId: 'palaeo',
+                eraName: '구석기',
+                eraIcon: 'fa-solid fa-bone',
+                eraColor: 'bg-stone-200 text-stone-800 border-stone-300',
+                period: '약 70만 년 전 ~ BCE 1만 년 전',
+                title: '주먹도끼의 쓸모 (적응과 융통성)',
+                quote: '하나의 도구를 다양한 용도로 다듬듯, 다재다능한 융통성을 발휘하라.',
+                history: '구석기 사람들이 돌을 깨뜨려 만든 주먹도끼는 사냥하기, 가죽 벗기기, 자르기 등 거의 모든 일에 다 쓰인 인류 최초의 만능 맥가이버 칼이었어요.',
+                application: '한 가지 방식만 고집하지 마세요. 그때그때 상황에 맞춰 내 능력을 다재다능하게 펼칠 때 어려운 문제도 쉽게 풀어낼 수 있습니다.',
+                artifact: '연천 전곡리 아슐리안형 주먹도끼, 슴베찌르개',
+                insight: '거친 돌덩이도 계속 다듬으면 훌륭한 도구가 되듯, 당신의 다재다능함은 거친 세상을 헤쳐갈 가장 강력한 무기입니다.'
+            },
+            {
+                id: 'palaeo-2',
+                eraId: 'palaeo',
+                eraName: '구석기',
+                eraIcon: 'fa-solid fa-fire',
+                eraColor: 'bg-stone-200 text-stone-800 border-stone-300',
+                period: '약 70만 년 전 ~ BCE 1만 년 전',
+                title: '동굴 불씨의 연대 (함께 모이기)',
+                quote: '어둠과 추위 속에서 온기를 나누듯, 연대의 온기로 추위를 극복하라.',
+                history: '컴컴하고 추운 동굴 속에서 구석기인들은 따뜻한 불을 피워 피어오르는 온기를 나눴어요. 불 덕분에 무서운 맹수도 쫓아내고 서로를 지켜줄 수 있었지요.',
+                application: '혼자 있으면 외롭고 약해지지만, 마음을 터놓고 함께 모이면 어떤 힘든 시련이나 어둠도 거뜬히 이겨낼 수 있습니다.',
+                artifact: '단양 수양개 유적, 공주 석장리 유적, 불을 피운 흔적',
+                insight: '가장 추운 밤을 견디게 한 것은 작은 불씨 하나와 곁에 있던 사람들의 온기였습니다.'
+            },
+
+            // --- 2. 신석기 시대 (Neolithic) ---
+            {
+                id: 'neo-1',
+                eraId: 'neo',
+                eraName: '신석기',
+                eraIcon: 'fa-solid fa-jar',
+                eraColor: 'bg-orange-100 text-amber-900 border-orange-200',
+                period: 'BCE 8000년 경 ~ BCE 1500년 경',
+                title: '빗살무늬토기의 지혜 (뿌리내림과 기다림)',
+                quote: '뾰족한 토기를 모래에 파묻듯, 흔들리지 않게 인내의 뿌리를 깊이 박아라.',
+                history: '신석기인들이 만든 빗살무늬토기는 밑바닥이 뾰족해요. 이상해 보이지만, 강가나 바닷가 푹푹 꺼지는 모래밭에 쏙 꽂아 두면 넘어지지 않고 가장 안정적이었답니다.',
+                application: '주변 상황이 불안하고 계속 흔들리는 것 같아도 당황하지 마세요. 내 마음의 뿌리를 바닥 깊숙이 내리면 어떤 흔들림에도 쓰러지지 않습니다.',
+                artifact: '암사동 빗살무늬토기, 간석기, 가락바퀴',
+                insight: '평평하지 않은 땅에서도 세워질 수 있는 것은 바닥을 깊이 파고든 지혜 덕분입니다.'
+            },
+            {
+                id: 'neo-2',
+                eraId: 'neo',
+                eraName: '신석기',
+                eraIcon: 'fa-solid fa-seedling',
+                eraColor: 'bg-orange-100 text-amber-900 border-orange-200',
+                period: 'BCE 8000년 경 ~ BCE 1500년 경',
+                title: '농경의 시작 (씨앗을 심는 성실함)',
+                quote: '오늘 심은 조와 피가 내일의 양식이 되듯, 먼 미래를 바라보며 씨앗을 뿌려라.',
+                history: '매일 열매를 찾아 돌아다니던 인류가 처음으로 땅에 씨앗을 심어 곡식을 키우기 시작했어요. 당장 먹을 건 없어도 꾹 참고 기다려 결실을 얻는 지혜를 배운 거죠.',
+                application: '지금 당장 눈앞에 결과가 나오지 않더라도 조바심내지 마세요. 오늘 정성껏 뿌린 작은 노력의 씨앗이 조만간 풍성한 결실로 찾아옵니다.',
+                artifact: '탄화된 조·피, 탄화 벼, 돌낫, 갈판과 갈돌',
+                insight: '기다림을 배운 인류 비로소 정착할 수 있었습니다. 결실을 위한 성실한 기다림을 두려워하지 마세요.'
+            },
+
+            // --- 3. 청동기 & 고조선 (Bronze & Gojoseon) ---
+            {
+                id: 'bronze-1',
+                eraId: 'bronze',
+                eraName: '청동기/고조선',
+                eraIcon: 'fa-solid fa-shield-halved',
+                eraColor: 'bg-yellow-100 text-amber-950 border-yellow-300',
+                period: 'BCE 2000년 경 ~ BCE 108년',
+                title: '홍익인간의 이념 (널리 이롭게 함)',
+                quote: '널리 사람을 이롭게 하라는 가르침처럼, 상생의 마음이 가장 큰 힘이다.',
+                history: '우리나라 최초의 나라 고조선을 세운 단군왕검은 \'홍익인간\', 즉 "널리 사람들을 이롭게 하고 도우며 살자"라는 멋진 약속을 첫 번째 가치로 세웠습니다.',
+                application: '나 혼자만 잘살려고 이기적으로 굴기보다, 내 주위 사람들에게 도움이 되는 행동을 먼저 해보세요. 다 함께 잘될 때 나도 더욱 빛나게 됩니다.',
+                artifact: '비파형 동검, 탁자식 고인돌, 팔주령',
+                insight: '가장 오랫동안 존경받는 리더십과 지혜는 늘 타인을 이롭게 하는 마음에서 출발했습니다.'
+            },
+            {
+                id: 'bronze-2',
+                eraId: 'bronze',
+                eraName: '청동기/고조선',
+                eraIcon: 'fa-solid fa-sun',
+                eraColor: 'bg-yellow-100 text-amber-950 border-yellow-300',
+                period: 'BCE 2000년 경 ~ BCE 108년',
+                title: '거울의 거침없는 반사 (스스로를 비춤)',
+                quote: '청동 거울이 빛을 반사하듯, 매일 자신의 마음과 행동을 맑게 비추어라.',
+                history: '옛날 청동 거울 뒷면에는 머리카락보다 얇고 촘촘한 선 수천 개가 새겨져 있어요. 정밀하게 거울을 다듬으며 스스로의 마음도 거울처럼 깨끗하게 비추어 보았답니다.',
+                application: '남을 지적하거나 탓하기 전에, 나 자신의 모습과 말버릇을 거울처럼 찬찬히 돌아보세요. 스스로를 돌아보는 사람이 진짜 멋진 사람입니다.',
+                artifact: '국보 제141호 다뉴세문경(정문경), 민무늬토기',
+                insight: '수천 개의 선이 정교하게 모여 거울이 되듯, 매일의 작은 반성이 맑은 인품을 완성합니다.'
+            },
+
+            // --- 4. 삼국 & 통일신라 (Three Kingdoms & Unified Silla) ---
+            {
+                id: 'samguk-1',
+                eraId: 'samguk',
+                eraName: '삼국/통일신라',
+                eraIcon: 'fa-solid fa-chess-rook',
+                eraColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+                period: 'BCE 57년 ~ CE 935년',
+                title: '광개토대왕의 기상 (넓은 안목과 개척)',
+                quote: '좁은 국경을 넘어 대륙을 바라보듯, 당신의 가능성을 한정 짓지 마라.',
+                history: '고구려의 광개토대왕은 작은 땅에 만족하지 않고 넓은 대륙으로 거침없이 달려나갔어요. 덕분에 고구려는 동아시아에서 가장 당당하고 강력한 나라가 되었지요.',
+                application: '스스로 "나는 여기까지야" 하고 한계를 정하지 마세요. 더 넓은 세상과 미래를 바라보며 두려움 없이 원하는 일에 도전해 보세요.',
+                artifact: '광개토대왕능비, 고구려 벽화 (무용총, 수용총)',
+                insight: '눈앞의 작은 거절이나 실패에 좌절하지 마세요. 당신의 무대는 생각보다 훨씬 넓습니다.'
+            },
+            {
+                id: 'samguk-2',
+                eraId: 'samguk',
+                eraName: '삼국/통일신라',
+                eraIcon: 'fa-solid fa-masks-theater',
+                eraColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+                period: 'BCE 57년 ~ CE 935년',
+                title: '백제 무령왕릉의 조화 (포용과 문화 교류)',
+                quote: '서로 다른 문화와 사상을 받아들여 더욱 빛나는 자신만의 색을 만들어라.',
+                history: '백제 무령왕릉은 중국의 벽돌 무덤 방식, 일본의 고급 소나무, 백제만의 정교한 공예 기술을 모두 합쳐서 만든 아름답고 화려한 무덤이에요.',
+                application: '나와 생각이 다르다고 거부하지 말고, 좋은 점은 받아들여 내 것으로 만드세요. 다양함을 인정할 때 나만의 독특한 매력이 생겨납니다.',
+                artifact: '무령왕릉 금제 관식, 석수, 백제금동대향로',
+                insight: '열린 마음으로 타인의 장점을 받아들이는 사람만이 고유한 가치를 증폭시킬 수 있습니다.'
+            },
+            {
+                id: 'samguk-3',
+                eraId: 'samguk',
+                eraName: '삼국/통일신라',
+                eraIcon: 'fa-solid fa-scale-balanced',
+                eraColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+                period: 'BCE 57년 ~ CE 935년',
+                title: '원효대사의 화쟁사상 (다툼을 넘어선 화합)',
+                quote: '모든 치우침을 내려놓고 마음의 원천을 돌아볼 때 극단은 하나로 통한다.',
+                history: '신라의 원효대사는 사람들이 서로 자기 스승이 맞다고 편을 갈라 싸울 때, "서로 다른 의견도 결국은 하나로 이어져 있다"며 다툼을 다독이고 화해시켰어요.',
+                application: '친구나 동료와 의견이 갈릴 때, 무조건 내 말만 맞다고 우기기보다 "그럴 수도 있겠구나" 하고 상대방의 마음을 한 번 더 이해해 보세요.',
+                artifact: '십문화쟁론, 해동초조 원효 영정, 경주 분황사',
+                insight: '해골물 한 모금에 깨달음을 얻었듯, 세상의 모든 괴로움과 즐거움은 마음이 만들어냅니다.'
+            },
+            {
+                id: 'samguk-4',
+                eraId: 'samguk',
+                eraName: '삼국/통일신라',
+                eraIcon: 'fa-solid fa-compass-drafting',
+                eraColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+                period: 'BCE 57년 ~ CE 935년',
+                title: '석굴암의 완벽한 조화 (정밀함과 절제)',
+                quote: '작은 돌 하나에도 치밀한 조화를 담듯, 기본과 원칙에 충실하라.',
+                history: '경주 석굴암은 돌을 하나하나 똑똑하게 계산해서 짜 맞춘 절이에요. 습기와 바람이 자연스럽게 빠져나가도록 수학과 과학을 완벽히 적용했답니다.',
+                application: '사소하다고 생각되는 기본 규칙과 작은 준비 과정을 꼼꼼히 챙기세요. 눈에 보이지 않는 정성이 오래도록 무너지지 않는 큰 성과를 만듭니다.',
+                artifact: '경주 석굴암 본존불, 불국사 다보탑과 석가탑',
+                insight: '보이지 않는 수학적 계산과 정성이 모여 천 년을 이어가는 불멸의 아름다움이 되었습니다.'
+            },
+
+            // --- 5. 고려 시대 (Goryeo Dynasty) ---
+            {
+                id: 'goryeo-1',
+                eraId: 'goryeo',
+                eraName: '고려',
+                eraIcon: 'fa-solid fa-gem',
+                eraColor: 'bg-sky-100 text-sky-900 border-sky-300',
+                period: 'CE 918년 ~ CE 1392년',
+                title: '고려청자의 상감기법 (상처를 채우는 예술)',
+                quote: '깎아낸 자리에 흰 흙과 붉은 흙을 채워 빛나듯, 시련의 흉터를 훈장으로 바꾸라.',
+                history: '고려청자는 표면을 칼로 살짝 파낸 뒤, 그 상처 같은 홈에 하얀 흙과 까만 흙을 채워 예쁜 구름과 학 모양을 만드는 상감기법으로 세계를 놀라게 했어요.',
+                application: '살면서 겪은 실수나 마음에 생긴 상처를 창피해하지 마세요. 그 흉터를 지혜로 잘 채워 넣으면 나만의 독특하고 멋진 자산이 됩니다.',
+                artifact: '청자 상감운학문 매병, 청자 투각칠보문비로 화로',
+                insight: '파내어진 아픔이 있었기에 비로소 비취빛 구름과 학이 그 자리에서 날아오를 수 있었습니다.'
+            },
+            {
+                id: 'goryeo-2',
+                eraId: 'goryeo',
+                eraName: '고려',
+                eraIcon: 'fa-solid fa-book-journal-whills',
+                eraColor: 'bg-sky-100 text-sky-900 border-sky-300',
+                period: 'CE 918년 ~ CE 1392년',
+                title: '팔만대장경의 정성 (국난 극복의 염원)',
+                quote: '글자 하나에 절을 한 번 하듯, 극도의 정성과 집중으로 위기를 정면 돌파하라.',
+                history: '적군이 침입해 나라가 위험해졌을 때, 고려 사람들은 8만 개가 넘는 나무판에 글자 하나를 조각할 때마다 절을 올리며 마음과 온 정성을 모아 대장경을 만들어 냈어요.',
+                application: '힘든 상황이 찾아와도 당황하지 말고 내 위치에서 할 수 있는 작은 일부터 집중해 보세요. 한 땀 한 땀 모인 정성은 기적을 일으킵니다.',
+                artifact: '합천 해인사 팔만대장경판, 장경판전',
+                insight: '글자 하나를 깎을 때마다 올린 절 한 번이 모여, 수백 년이 지나도 썩지 않는 불멸의 유산이 되었습니다.'
+            },
+            {
+                id: 'goryeo-3',
+                eraId: 'goryeo',
+                eraName: '고려',
+                eraIcon: 'fa-solid fa-comments',
+                eraColor: 'bg-sky-100 text-sky-900 border-sky-300',
+                period: 'CE 918년 ~ CE 1392년',
+                title: '서희의 외교 담판 (말 한마디의 지혜)',
+                quote: '칼과 창보다 강력한 것은 상대의 마음과 명분을 파악하는 지혜로운 대화다.',
+                history: '거란의 80만 대군이 쳐들어왔을 때 서희 장군은 칼을 빼들고 싸우는 대신 상대 장수를 찾아가 당당하게 대화했어요. 말 한마디로 적을 돌려보내고 피 한 방울 안 흘리고 땅까지 얻었지요.',
+                application: '누군가와 싸움이 났을 때 무조건 화부터 내지 말고, 상대방이 정말 원하는 게 뭔지 먼저 파악하고 지혜롭게 대화로 풀어가 보세요.',
+                artifact: '서희 장군 영정, 강동 6주 유적',
+                insight: '가장 위대한 승리는 싸우지 않고 상대를 설득하여 모두가 이기는 길을 찾는 것입니다.'
+            },
+            {
+                id: 'goryeo-4',
+                eraId: 'goryeo',
+                eraName: '고려',
+                eraIcon: 'fa-solid fa-anchor',
+                eraColor: 'bg-sky-100 text-sky-900 border-sky-300',
+                period: 'CE 918년 ~ CE 1392년',
+                title: '벽란도의 개방성 (세계로 향한 통로)',
+                quote: '벽란도의 항구처럼 마음을 시원하게 열어 세계의 흐름과 호흡하라.',
+                history: '고려의 항구 벽란도에는 멀리 아라비아 상인들까지 배를 타고 찾아왔어요. 다양한 나라 사람들과 반갑게 거래하며 우리나라 이름 \'코리아(KOREA)\'를 세계에 널리 알렸답니다.',
+                application: '편견을 버리고 새로운 아이디어나 나랑 다른 친구들에게 마음을 열어보세요. 열린 마음이 나를 더 넓은 세상으로 안내해 줍니다.',
+                artifact: '고려 은병(활구), 고려 인삼, 벽란도 유적',
+                insight: '바다로 나아가는 문을 열었을 때, 세상 또한 고려라는 이름을 기억하기 시작했습니다.'
+            }
+        ];
+
+        // Era definitions for UI filters
+        const eras = [
+            { id: 'all', name: '전체', icon: 'fa-solid fa-globe' },
+            { id: 'palaeo', name: '구석기', icon: 'fa-solid fa-bone' },
+            { id: 'neo', name: '신석기', icon: 'fa-solid fa-jar' },
+            { id: 'bronze', name: '청동기/고조선', icon: 'fa-solid fa-shield-halved' },
+            { id: 'samguk', name: '삼국/통일신라', icon: 'fa-solid fa-chess-rook' },
+            { id: 'goryeo', name: '고려', icon: 'fa-solid fa-gem' }
+        ];
+
+        // App State
+        let currentEraFilter = 'all';
+        let currentDraw = null;
+        let bookmarks = JSON.parse(localStorage.getItem('history_lessons_bookmarks') || '[]');
+
+        // DOM Elements
+        const eraFilterContainer = document.getElementById('era-filter-container');
+        const selectedEraLabel = document.getElementById('selected-era-label');
+        const drawCard = document.getElementById('draw-card');
+        const resultCard = document.getElementById('result-card');
+        const drawBtn = document.getElementById('draw-btn');
+        const redrawBtn = document.getElementById('btn-redraw');
+        const boxIconWrapper = document.getElementById('box-icon-wrapper');
+        const boxIcon = document.getElementById('box-icon');
+        
+        // Result fields
+        const resEraBadge = document.getElementById('res-era-badge');
+        const resPeriod = document.getElementById('res-period');
+        const resTitle = document.getElementById('res-title');
+        const resQuote = document.getElementById('res-quote');
+        const resHistory = document.getElementById('res-history');
+        const resApplication = document.getElementById('res-application');
+        const btnBookmark = document.getElementById('btn-bookmark');
+        const btnShare = document.getElementById('btn-share');
+        const btnDetail = document.getElementById('btn-detail');
+
+        // Modals & Drawers
+        const bookmarkListBtn = document.getElementById('bookmark-list-btn');
+        const bookmarkModal = document.getElementById('bookmark-modal');
+        const bookmarkDrawer = document.getElementById('bookmark-drawer');
+        const closeBookmarkBtn = document.getElementById('close-bookmark-btn');
+        const bookmarkList = document.getElementById('bookmark-list');
+        const bookmarkCount = document.getElementById('bookmark-count');
+
+        const detailModal = document.getElementById('detail-modal');
+        const closeDetailBtn = document.getElementById('close-detail-btn');
+        const closeDetailBtn2 = document.getElementById('close-detail-btn-2');
+        const modalEra = document.getElementById('modal-era');
+        const modalTitle = document.getElementById('modal-title');
+        const modalHistory = document.getElementById('modal-content-history');
+        const modalArtifact = document.getElementById('modal-content-artifact');
+        const modalInsight = document.getElementById('modal-content-insight');
+
+        const toast = document.getElementById('toast');
+        const toastMsg = document.getElementById('toast-msg');
+
+        // Initialize App
+        function initApp() {
+            renderEraFilters();
+            updateBookmarkCount();
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+
+            // Event Listeners
+            drawBtn.addEventListener('click', triggerDraw);
+            redrawBtn.addEventListener('click', resetToDrawState);
+            boxIconWrapper.addEventListener('click', triggerDraw);
+            btnBookmark.addEventListener('click', toggleBookmarkCurrent);
+            btnShare.addEventListener('click', copyShareText);
+            btnDetail.addEventListener('click', openDetailModal);
+
+            bookmarkListBtn.addEventListener('click', openBookmarkModal);
+            closeBookmarkBtn.addEventListener('click', closeBookmarkModal);
+            bookmarkModal.addEventListener('click', (e) => {
+                if (e.target === bookmarkModal) closeBookmarkModal();
+            });
+
+            closeDetailBtn.addEventListener('click', closeDetailModal);
+            closeDetailBtn2.addEventListener('click', closeDetailModal);
+            detailModal.addEventListener('click', (e) => {
+                if (e.target === detailModal) closeDetailModal();
+            });
+        }
+
+        // Render Era Filter Buttons
+        function renderEraFilters() {
+            eraFilterContainer.innerHTML = '';
+            eras.forEach(era => {
+                const btn = document.createElement('button');
+                const isActive = currentEraFilter === era.id;
+                
+                btn.className = `flex flex-col items-center justify-center p-2 rounded-xl text-xs font-medium border transition-all ${
+                    isActive 
+                        ? 'bg-amber-800 text-amber-50 border-amber-800 shadow-md scale-105' 
+                        : 'bg-white/80 text-stone-600 border-stone-200 hover:bg-amber-50 hover:border-amber-200'
+                }`;
+
+                btn.innerHTML = `
+                    <i class="${era.icon} text-sm mb-1 ${isActive ? 'text-amber-200' : 'text-amber-700'}"></i>
+                    <span>${era.name}</span>
+                `;
+
+                btn.addEventListener('click', () => {
+                    currentEraFilter = era.id;
+                    renderEraFilters();
+                    selectedEraLabel.textContent = era.id === 'all' ? '전체 시대 (랜덤)' : `${era.name} 시대 선택됨`;
+                    showToast(`${era.name} 필터가 적용되었습니다.`);
+                });
+
+                eraFilterContainer.appendChild(btn);
+            });
+        }
+
+        // Trigger Draw Animation & Logic
+        function triggerDraw() {
+            if (drawBtn.disabled) return;
+
+            // Filter database
+            let pool = historyDatabase;
+            if (currentEraFilter !== 'all') {
+                pool = historyDatabase.filter(item => item.eraId === currentEraFilter);
+            }
+
+            if (pool.length === 0) {
+                showToast('해당 시대의 교훈이 준비 중입니다.');
+                return;
+            }
+
+            // Animation effect on box
+            boxIconWrapper.classList.add('animate-shake');
+            boxIcon.className = "fa-solid fa-box-open text-6xl text-amber-600 transition duration-300";
+            drawBtn.disabled = true;
+            drawBtn.classList.add('opacity-75');
+
+            setTimeout(() => {
+                // Select random item
+                const randomIndex = Math.floor(Math.random() * pool.length);
+                currentDraw = pool[randomIndex];
+
+                // Populate Result Data
+                displayResult(currentDraw);
+
+                // Switch Cards
+                drawCard.classList.add('hidden');
+                resultCard.classList.remove('hidden');
+
+                // Reset Box styles for next time
+                boxIconWrapper.classList.remove('animate-shake');
+                boxIcon.className = "fa-solid fa-scroll text-6xl text-amber-700 transition duration-300";
+                drawBtn.disabled = false;
+                drawBtn.classList.remove('opacity-75');
+
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }, 600);
+        }
+
+        // Display Data in Result Card
+        function displayResult(data) {
+            resEraBadge.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${data.eraColor}`;
+            resEraBadge.innerHTML = `<i class="${data.eraIcon}"></i> <span>${data.eraName}</span>`;
+            
+            resPeriod.textContent = data.period;
+            resTitle.textContent = data.title;
+            resQuote.textContent = `"${data.quote}"`;
+            resHistory.textContent = data.history;
+            resApplication.textContent = data.application;
+
+            updateBookmarkButtonState();
+        }
+
+        // Reset back to Draw Screen
+        function resetToDrawState() {
+            resultCard.classList.add('hidden');
+            drawCard.classList.remove('hidden');
+        }
+
+        // Bookmark Logic
+        function updateBookmarkButtonState() {
+            if (!currentDraw) return;
+            const isBookmarked = bookmarks.some(b => b.id === currentDraw.id);
+            if (isBookmarked) {
+                btnBookmark.classList.add('text-amber-600', 'fill-amber-600');
+                btnBookmark.classList.remove('text-stone-400');
+            } else {
+                btnBookmark.classList.remove('text-amber-600', 'fill-amber-600');
+                btnBookmark.classList.add('text-stone-400');
+            }
+        }
+
+        function toggleBookmarkCurrent() {
+            if (!currentDraw) return;
+            const index = bookmarks.findIndex(b => b.id === currentDraw.id);
+            if (index >= 0) {
+                bookmarks.splice(index, 1);
+                showToast('보관함에서 삭제되었습니다.');
+            } else {
+                bookmarks.push(currentDraw);
+                showToast('보관함에 저장되었습니다.');
+            }
+            localStorage.setItem('history_lessons_bookmarks', JSON.stringify(bookmarks));
+            updateBookmarkButtonState();
+            updateBookmarkCount();
+            renderBookmarkList();
+        }
+
+        function updateBookmarkCount() {
+            bookmarkCount.textContent = bookmarks.length;
+        }
+
+        function renderBookmarkList() {
+            bookmarkList.innerHTML = '';
+            if (bookmarks.length === 0) {
+                bookmarkList.innerHTML = `
+                    <div class="text-center py-12 text-stone-400">
+                        <i data-lucide="bookmark-x" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+                        <p class="text-sm font-batang">저장된 역사 교훈이 없습니다.</p>
+                        <p class="text-xs mt-1">마음에 드는 교훈의 북마크를 눌러보세요.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            bookmarks.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'p-4 rounded-xl bg-stone-50 border border-stone-200 hover:border-amber-300 transition relative group';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-1.5">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">${item.eraName}</span>
+                        <button class="remove-bk-btn text-stone-400 hover:text-red-500 p-1" data-id="${item.id}">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <h5 class="font-batang font-bold text-stone-800 text-sm mb-1">${item.title}</h5>
+                    <p class="font-batang text-xs text-stone-600 italic mb-2">"${item.quote}"</p>
+                    <button class="view-bk-btn text-xs font-medium text-amber-700 hover:underline flex items-center gap-1" data-id="${item.id}">
+                        <span>교훈 보기</span> <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                    </button>
+                `;
+
+                // Add delete listener
+                card.querySelector('.remove-bk-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    bookmarks = bookmarks.filter(b => b.id !== item.id);
+                    localStorage.setItem('history_lessons_bookmarks', JSON.stringify(bookmarks));
+                    updateBookmarkCount();
+                    renderBookmarkList();
+                    updateBookmarkButtonState();
+                    showToast('삭제되었습니다.');
+                });
+
+                // Add view listener
+                card.querySelector('.view-bk-btn').addEventListener('click', () => {
+                    currentDraw = item;
+                    displayResult(item);
+                    drawCard.classList.add('hidden');
+                    resultCard.classList.remove('hidden');
+                    closeBookmarkModal();
+                });
+
+                bookmarkList.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        // Modals Toggle
+        function openBookmarkModal() {
+            renderBookmarkList();
+            bookmarkModal.classList.remove('hidden');
+            setTimeout(() => {
+                bookmarkDrawer.classList.remove('translate-x-full');
+            }, 10);
+        }
+
+        function closeBookmarkModal() {
+            bookmarkDrawer.classList.add('translate-x-full');
+            setTimeout(() => {
+                bookmarkModal.classList.add('hidden');
+            }, 300);
+        }
+
+        function openDetailModal() {
+            if (!currentDraw) return;
+            modalEra.textContent = `${currentDraw.eraName} (${currentDraw.period})`;
+            modalTitle.textContent = currentDraw.title;
+            modalHistory.textContent = currentDraw.history;
+            modalArtifact.textContent = currentDraw.artifact;
+            modalInsight.textContent = currentDraw.insight;
+
+            detailModal.classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            detailModal.classList.add('hidden');
+        }
+
+        // Copy Share
+        function copyShareText() {
+            if (!currentDraw) return;
+            const textToCopy = `[오늘의 역사 교훈 - ${currentDraw.eraName}]\n\n"${currentDraw.quote}"\n\n- ${currentDraw.title}\n${currentDraw.application}`;
+            
+            // Clipboard fallback
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showToast('클립보드에 교훈이 복사되었습니다!');
+        }
+
+        // Toast Helper
+        function showToast(message) {
+            toastMsg.textContent = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // Start App on Window Load
+        window.onload = initApp;
+    </script>
+</body>
+</html>
